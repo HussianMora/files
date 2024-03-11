@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ApimServiceName": {
+      "type": "string"
+    },
+    "ApiName": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "resourceGroupName": {
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "properties": {
+        "displayName": "[concat('Fbau Dealer Intergration APIs ', parameters('environment'))]",
+        "description": "Fbau DI APIs Version Set",
+        "versioningScheme": "Segment"
+      },
+      "name": "[concat(parameters('ApimServiceName'), '/', parameters('ApiName'))]",
+      "type": "Microsoft.ApiManagement/service/apiVersionSets",
+      "apiVersion": "2019-01-01"
+    }
+  ]
+}
