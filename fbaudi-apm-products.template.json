@@ -1,9 +1,4 @@
-"C:\Program Files (x86)\Jenkins\workspace\DMDA2_doctrack_CI\doctrack.sln" (default target) (1) ->
-"C:\Program Files (x86)\Jenkins\workspace\DMDA2_doctrack_CI\doctrack\doctrack.csproj" (default target) (2) ->
-(NETStandardCompatError_Microsoft_Extensions_Configuration_Binder target) -> 
-  C:\Windows\SysWOW64\config\systemprofile\.nuget\packages\microsoft.extensions.configuration.binder\8.0.0\buildTransitive\netstandard2.0\Microsoft.Extensions.Configuration.Binder.targets(20,17): error MSB4186: Invalid static method invocation syntax: "[MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp2.0')". Method '[MSBuild]::IsTargetFrameworkCompatible' not found. Static method invocation should be of the form: $([FullTypeName]::Method()), e.g. $([System.IO.Path]::Combine(a, b)). Check that all parameters are defined, are of the correct type, and are specified in the right order. [C:\Program Files (x86)\Jenkins\workspace\DMDA2_doctrack_CI\doctrack\doctrack.csproj]
-
-
-"C:\Program Files (x86)\Jenkins\workspace\DMDA2_doctrack_CI\doctrack.sln" (default target) (1) ->
-"C:\Program Files (x86)\Jenkins\workspace\DMDA2_doctrack_CI\doctrackapicore\doctrackapicore.csproj" (default target) (6) ->
-  C:\Windows\SysWOW64\config\systemprofile\.nuget\packages\microsoft.extensions.configuration.binder\8.0.0\buildTransitive\netstandard2.0\Microsoft.Extensions.Configuration.Binder.targets(20,17): error MSB4186: Invalid static method invocation syntax: "[MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp2.0')". Method '[MSBuild]::IsTargetFrameworkCompatible' not found. Static method invocation should be of the form: $([FullTypeName]::Method()), e.g. $([System.IO.Path]::Combine(a, b)). Check that all parameters are defined, are of the correct type, and are specified in the right order. [C:\Program Files (x86)\Jenkins\workspace\DMDA2_doctrack_CI\doctrackapicore\doctrackapicore.csproj]
+The error message you're seeing is related to the MSBuild version being used. The IsTargetFrameworkCompatible method was introduced in MSBuild 16.5. If you're using an older version, you'll see this error because MSBuild doesn't recognize the method.
+To fix this issue, you need to update your MSBuild to version 16.5 or later. If you're using Jenkins, you might need to update the MSBuild plugin or configure it to use a newer version of MSBuild.
+If you're using Visual Studio, you can update it to the latest version, which will also update MSBuild. If you're using .NET Core, you can update the .NET Core SDK.
+After updating, try building your project again. The error should be resolved.
