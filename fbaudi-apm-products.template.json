@@ -1,20 +1,15 @@
-Projects Summary :
+Hitachi Energy:
 
-Hitachi Energy 
-Hitachi Energy is used by Hitachi Engineers to save, update and view meter readings and also to track tickets.
-Converted legacy code written in .NET Webforms to latest technology Angular and Web API.
-Developed various Web APIs and updated DB and created various SPs.
-Written test cases using Xunit to test Web APIs
-Covid Vaccine App :
-Covid Vaccine App was developed for Applied Materials Employees where employees can add their vaccination details and can generate certificate which they can use to travel office.
-There were two modules Employee and Admin
-Developed from scratch entire web application as well as Web API.
-Worked on daily tasks assigned and completed tasks with quality
-Followed Agile methodology in project.
-Developed Web Application, Web API as well as various services for projects.
+Converted legacy .NET WebForms code to Angular and Web API technologies.
+Developed new Web APIs and updated databases, including stored procedures.
+Implemented Xunit for comprehensive testing of Web APIs.
+Covid Vaccine App:
 
+Developed a Covid Vaccine App for Applied Materials employees.
+Created both the web application and Web API from scratch.
+Utilized Agile methodology for task management and ensured high-quality output.
 Insync Healthcare Applications:
-Insync Healthcare Applications is used in US Healthcare to save patient medical records as well as to handle billings.
-Worked on Day to Day Tasks assigned and complete it in timely basis and with quality
-Used Agile Methodology for Project Development
-Interact with various teams and developed application
+
+Contributed to the development of applications used in US Healthcare.
+Managed day-to-day tasks efficiently and maintained high-quality standards.
+Collaborated with various teams following Agile methodology for project development.
