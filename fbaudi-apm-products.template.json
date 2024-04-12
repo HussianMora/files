@@ -1,9 +1,20 @@
-To update the MSBuild version in Jenkins, you need to install the updated version of MSBuild on your system and then configure Jenkins to use it. Here are the steps:
-1.	Install the updated version of MSBuild: You can download the latest version of MSBuild from the official Microsoft website. If you have Visual Studio installed, you can also update Visual Studio to get the latest version of MSBuild.
-2.	Configure Jenkins to use the updated version of MSBuild:
-•	Go to "Manage Jenkins" > "Global Tool Configuration".
-•	Under the "MSBuild" section, click on "MSBuild installations".
-•	If you already have an MSBuild configured, you can update the "Path to MSBuild" to point to the new version. The path typically looks like this: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe. Replace 2019\Community with your Visual Studio version and edition.
-•	If you don't have an MSBuild configured, you can click on "Add MSBuild" and then provide a name and the path to the MSBuild executable.
-•	Click on "Apply" and then "Save".
-Now, Jenkins should use the updated version of MSBuild for building your projects.
+Projects Summary :
+
+Hitachi Energy 
+Hitachi Energy is used by Hitachi Engineers to save, update and view meter readings and also to track tickets.
+Converted legacy code written in .NET Webforms to latest technology Angular and Web API.
+Developed various Web APIs and updated DB and created various SPs.
+Written test cases using Xunit to test Web APIs
+Covid Vaccine App :
+Covid Vaccine App was developed for Applied Materials Employees where employees can add their vaccination details and can generate certificate which they can use to travel office.
+There were two modules Employee and Admin
+Developed from scratch entire web application as well as Web API.
+Worked on daily tasks assigned and completed tasks with quality
+Followed Agile methodology in project.
+Developed Web Application, Web API as well as various services for projects.
+
+Insync Healthcare Applications:
+Insync Healthcare Applications is used in US Healthcare to save patient medical records as well as to handle billings.
+Worked on Day to Day Tasks assigned and complete it in timely basis and with quality
+Used Agile Methodology for Project Development
+Interact with various teams and developed application
