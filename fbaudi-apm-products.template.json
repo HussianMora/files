@@ -1,15 +1,3 @@
-Hitachi Energy:
-
-Converted legacy .NET WebForms code to Angular and Web API technologies.
-Developed new Web APIs and updated databases, including stored procedures.
-Implemented Xunit for comprehensive testing of Web APIs.
-Covid Vaccine App:
-
-Developed a Covid Vaccine App for Applied Materials employees.
-Created both the web application and Web API from scratch.
-Utilized Agile methodology for task management and ensured high-quality output.
-Insync Healthcare Applications:
-
-Contributed to the development of applications used in US Healthcare.
-Managed day-to-day tasks efficiently and maintained high-quality standards.
-Collaborated with various teams following Agile methodology for project development.
+#.Net core 3.1 is End of Life support  (recommend that use .NET 8 latest version)
+#Net framework 4.7.2  (recommend that use 4.8.1 latest version)
+#SDK : dotnet-sdk-6.0.417 is end of life support  (recommend that use Latest SDK: 6.0.420)
