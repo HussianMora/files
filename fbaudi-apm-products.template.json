@@ -1,13 +1,6 @@
-1.	.NET Core 3.1 to .NET 8: .NET Core 3.1 reached its end of life on December 3, 2022. It's recommended to migrate to .NET 8, the latest version as of your information. .NET 8 includes significant improvements in performance, security, and support for the latest standards and technologies. Migrating to .NET 8 will ensure your applications are up-to-date and maintainable. Remember, .NET 5 and onwards are just called .NET, dropping the "Core" from the name to unify the platform.
-2.	.NET Framework 4.7.2 to 4.8.1: While .NET Framework 4.7.2 is still supported, moving to .NET Framework 4.8.1, the latest version, is advisable for enhanced security and performance. .NET Framework 4.8.1 includes bug fixes and improvements over previous versions. Note that .NET Framework is in a pretty stable state, with most new development happening on .NET (formerly .NET Core).
-3.	SDK dotnet-sdk-6.0.417 to 6.0.420: The .NET SDK version 6.0.417 is end of life, and it's recommended to update to the latest SDK version, 6.0.420. This update will include the latest tooling and fixes, ensuring your development environment is secure and efficient.
-Steps for Updating:
-•	Backup your projects: Before making any updates, ensure you have backups of your projects.
-•	Update the .NET SDK and Runtime: Download and install the latest .NET SDK and runtime from the official .NET download page.
-•	Update Project Files: For each project, update the target framework in the project file (.csproj or .vbproj). For example, to target .NET 8, use <TargetFramework>net8.0</TargetFramework>.
-•	Test Your Applications: After updating, thoroughly test your applications to ensure they work as expected. Pay special attention to deprecated APIs and behavior changes between versions.
-•	Check Dependencies: Ensure all your dependencies (NuGet packages, etc.) are compatible with the new versions. You might need to update some packages.
-•	Follow Migration Guides: For comprehensive guidance, refer to the official migration documentation provided by Microsoft:
-•	.NET Core 3.1 to .NET 8 migration guide
-•	.NET Framework to .NET 8 migration guide
-Updating to the latest versions not only enhances your applications but also ensures you have the latest security patches and performance improvements.
+Hi Sumanth,
+
+I am not feeling well so I am planning to join in 2nd half. Can you please reschedule interview in evening or tomorrow if possible?
+
+Thanks,
+Husain
