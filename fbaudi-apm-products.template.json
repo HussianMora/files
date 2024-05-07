@@ -1,8 +1,25 @@
-Hi Sumanth,
+Severity Medium
+Risk Type Vulnerable and outdated component
+Observation :-
+We observed a vulnerable JavaScript library.
+We detected jquery-ui version 1.12.1, which has the following vulnerabilities:
+CVE-2021-41182: XSS in the `altField` option of the Datepicker widget
+CVE-2021-41184: XSS in the `of` option of the `.position()` util
+CVE-2021-41183: XSS Vulnerability on text options of jQuery UI datepicker
+CVE-2022-31160: XSS when refreshing a checkboxradio with an HTML-like initial text label
+We detected bootstrap version 4.1.3, which has the following vulnerability:
+CVE-2019-8331: XSS in data-template, data-content and data-title properties of tooltip/popover
+Location :
 
-I hope this message finds you well. I'm reaching out to inform you that I'm not feeling well today, so I would like to request rescheduling my interview to the second half of the day or possibly tomorrow, if that's convenient for you.
+https://careuatdmda.ikshealth.com/Content/js/1.21.1-jquery-ui.js
+https://careuatdmda.ikshealth.com/Content/js/bootstrap.js
 
-Thank you for your understanding.
 
-Best regards,
-Husain
+Impact :-
+According to the self-reported version in the script, the version of JQuery hosted on the remote web server is greater than or equal to
+v1.12.1 and bootstrap v4.1.3
+Recommendation :-
+Please upgrade to the latest version of jquery.
+References
+https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities
+https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities
