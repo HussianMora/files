@@ -1,25 +1,373 @@
-Severity Medium
-Risk Type Vulnerable and outdated component
-Observation :-
-We observed a vulnerable JavaScript library.
-We detected jquery-ui version 1.12.1, which has the following vulnerabilities:
-CVE-2021-41182: XSS in the `altField` option of the Datepicker widget
-CVE-2021-41184: XSS in the `of` option of the `.position()` util
-CVE-2021-41183: XSS Vulnerability on text options of jQuery UI datepicker
-CVE-2022-31160: XSS when refreshing a checkboxradio with an HTML-like initial text label
-We detected bootstrap version 4.1.3, which has the following vulnerability:
-CVE-2019-8331: XSS in data-template, data-content and data-title properties of tooltip/popover
-Location :
-
-https://careuatdmda.ikshealth.com/Content/js/1.21.1-jquery-ui.js
-https://careuatdmda.ikshealth.com/Content/js/bootstrap.js
+USE [ALA_GIDEONS_SEQUEL]
+GO
+/****** Object:  StoredProcedure [dbo].[Gsp_ATB_Advance_UpdateDailyLCY]    Script Date: 08-05-2024 12:25:18 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 
 
-Impact :-
-According to the self-reported version in the script, the version of JQuery hosted on the remote web server is greater than or equal to
-v1.12.1 and bootstrap v4.1.3
-Recommendation :-
-Please upgrade to the latest version of jquery.
-References
-https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities
-https://owasp.org/www-project-top-ten/2017/A9_2017-Using_Components_with_Known_Vulnerabilities
+/********************************************************************************************************************************
+
+												 	   AIR LIQUIDE - GIDEONS
+											              Stored Procedure
+											                   for
+													      Daily ATB Update
+											     PREPARED  FOR AIR LIQUIDE,SOUTH ASIA
+
+     Program Id					: Gsp_ATB_UpdateDailyLCY
+     Program Description		: This program will calculate the daily
+								 oustandings and update atb balance in local currency.
+     Online/Batch				: Batch
+     Procedures called          : Gsp_ATB_UpdateDailyLCY
+     Procedures calling this    :  
+     Input Parameters           : None
+     Output Parameter           : None
+     Error Messages             : None
+     Message Text				: None
+     Modification Log           :
+
+********************************************************************************************************************************
+    Ver     Author          Date		Changes made          																
+    1.0		Dinuka			22/06/2018	Created from Gsp_ATB_UpdateDailyLCY     											
+    1.1		Sakthi/VJ		12/05/2020	INC0582240 | Changed the logic to getting Exchange rate from the transaction table	
+	1.2		Evon Marcus		20/06/2020  INC0591281 | Added Account no as parameter																
+******************************************************************************************************************************/
+
+ALTER PROCEDURE [dbo].[Gsp_ATB_Advance_UpdateDailyLCY]
+    @cAccountNo AS VARCHAR(8) = '*' --1.2
+
+AS
+DECLARE @sdSysProcDate  DATETIME,
+        @cMonthBatch    CHAR(6),
+        @cMonthRef      CHAR(6),
+        @vErrorMessage  VARCHAR(MAX),
+        @cChkFlag       CHAR(1),
+        @iReturnValue   INT,
+        @cFlag          CHAR(1),
+        @bAtbByDueDate  AS BIT      = 0,
+        @sdMonthEndDate DATETIME --2.6
+
+    BEGIN TRY
+        IF NOT EXISTS (
+                          SELECT ' '
+                          FROM dbo.APPLICATION_SETTINGS ASE
+                          WHERE ASE.APPLICATION_CODE = 'ADVANCE_RECEIPT_APPLICABLE' AND ASE.APPLICATION_VALUE = 'Y'
+                      )
+            RETURN; --Exit if advance receipt is not enabled --1.2
+
+        --v2.2 ~ Manjuke
+        IF EXISTS (
+                      SELECT 'X'
+                      FROM dbo.COUNTRY_SETTINGS CS
+                      WHERE CS.CALCULATE_ATB_BY_PRINT_DATE = 'Y'
+                  )
+            BEGIN
+                SET @bAtbByDueDate = 1
+            END
+
+        ---- Create Temp Table to hold Data
+
+        CREATE TABLE #MyTempTable
+        (
+            Account_No    CHAR(8),
+            Month_ref     CHAR(6),
+            os_120_days   MONEY,
+            os_90_days    MONEY,
+            os_60_days    MONEY,
+            os_30_days    MONEY,
+            Os_Current    MONEY,
+            os_total      MONEY,
+            date_lupd     DATETIME,
+            CURRENCY_CODE CHAR(3)
+        )
+
+        SET @vErrorMessage =
+            'Gsp_ATB_Advance_OverdueUpdateDailyLCY : Error occured while getting data from System_Settings'
+
+        SELECT @cMonthBatch = MONTH_BATCH,
+               @cMonthRef = MONTH_REF,
+               @sdSysProcDate = SYS_PROC_DATE,
+               @sdMonthEndDate = MONTH_END_DATE --2.6
+        FROM dbo.SYSTEM_SETTINGS
+        WHERE SYSDATA_KEY = 'S1'
+
+
+        IF @@ROWCOUNT = 0
+            BEGIN
+                SET @vErrorMessage = 'Gsp_ATB_UpdateDailyLCY : No record found in System_Settings'
+                INSERT INTO dbo.ERRORMSG
+                (
+                em_date_time,
+                em_field_value,
+                em_error_code,
+                em_error_comment
+                )
+                VALUES
+                (   GETDATE(),
+                    ' ',
+                    0,
+                    @vErrorMessage)
+                RAISERROR(@vErrorMessage, 16, -1)
+                RETURN 1
+            END
+
+        IF (@sdSysProcDate > @sdMonthEndDate) --2.6
+            SELECT @sdSysProcDate = @sdMonthEndDate --2.6
+
+
+        ---- Create Temp Table to hold Data
+
+        INSERT INTO #MyTempTable
+                    SELECT ACCOUNT_NO,
+                           MONTH_REF,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           GETDATE(),
+                           CURRENCY_CODE
+                    FROM dbo.ATB_BALANCE
+                    WHERE Month_ref = @cMonthBatch
+                          AND Account_No = IIF(LTRIM(RTRIM(@cAccountNo)) = '*', Account_No, @cAccountNo) --1.2
+
+        ------------ complete CR Journals
+
+        MERGE #MyTempTable target
+        USING (
+                  SELECT DISTINCT
+                         ac1.ACCOUNT_NO,
+                                                                        -- No_Of_Days,
+                         os_120_days = SUM(ISNULL(ac1.os_120_days, 0)), --v2.5
+                         os_90_days = SUM(ISNULL(ac1.os_90_days, 0)),   --v2.5
+                         os_60_days = SUM(ISNULL(ac1.os_60_days, 0)),   --v2.5
+                         os_30_days = SUM(ISNULL(ac1.os_30_days, 0)),   --v2.5
+                         os_current = SUM(ISNULL(ac1.os_current, 0)),   --v2.5
+                         os_total = SUM(ac1.Os_total)
+                  FROM --ACCOUNT ac inner join
+        (
+            SELECT R.ACCOUNT_NO,
+                   SUM(   CASE
+                              WHEN @bAtbByDueDate = 1
+                                  THEN IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) > 90,
+                                           (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                                           0)
+                          ELSE
+                          (IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) >= 121,
+                               (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                               0)
+                          )
+                          END
+                      ) AS os_120_days,                                                                          --2.6--1.1
+
+                   SUM(   CASE
+                              WHEN @bAtbByDueDate = 1
+                                  THEN IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) BETWEEN 61 AND 90,
+                                           (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                                           0)
+                          ELSE
+                          (IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) BETWEEN 91 AND 120,
+                               (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                               0)
+                          )
+                          END
+                      ) AS os_90_days,                                                                           --2.6--1.1
+
+                   SUM(   CASE
+                              WHEN @bAtbByDueDate = 1
+                                  THEN IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) BETWEEN 31 AND 60,
+                                           (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                                           0)
+                          ELSE
+                          (IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) BETWEEN 61 AND 90,
+                               (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                               0)
+                          )
+                          END
+                      ) AS os_60_days,                                                                           --2.6--1.1
+
+                   SUM(   CASE
+                              WHEN @bAtbByDueDate = 1
+                                  THEN IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) BETWEEN 1 AND 30,
+                                           (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                                           0)
+                          ELSE
+                          (IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) BETWEEN 31 AND 60,
+                               (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                               0)
+                          )
+                          END
+                      ) AS os_30_days,                                                                           --2.6--1.1
+
+                   SUM(   CASE
+                              WHEN @bAtbByDueDate = 1
+                                  THEN IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 0,
+                                           (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                                           0)
+                          ELSE
+                          (IIF(DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 30,
+                               (R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID)),
+                               0)
+                          )
+                          END
+                      ) AS os_current,                                                                           --2.6--1.1
+
+                   ISNULL(SUM((R.EXCHANGE_RATE * CONVERT(DECIMAL(19, 2), R.BALANCE_UNPAID))), 0.00) AS Os_total, --1.1
+                   CASE
+                       WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 30
+                           THEN 0 --2.6
+                   ELSE CASE
+                            WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 60
+                                THEN 30 --2.6
+                        ELSE CASE
+                                 WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 90
+                                     THEN 60 --2.6
+                             ELSE CASE
+                                      WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 120
+                                          THEN 90
+                                  ELSE 120 --2.6
+                                  END
+                             END
+                        END
+                   END No_Of_Days
+            FROM dbo.RECEIPT R
+                INNER JOIN dbo.ACCOUNT AC ON AC.ACCOUNT_NO = R.ACCOUNT_NO -- 1.0
+                INNER JOIN dbo.COMPANY C ON C.COMPANY_ID   = AC.COMPANY_ID -- 1.0
+            WHERE R.MONTH_REF <= @cMonthBatch AND R.BALANCE_UNPAID > 0 AND R.MATCHED = 'Y'
+                  AND (
+                          R.IS_ADVANCE_PAYMENT = 1 AND ISNULL(C.ADVANCE_ATB_REQ, 0) = 1
+                      ) -- 1.0
+                  AND R.ACCOUNT_NO = IIF(LTRIM(RTRIM(@cAccountNo)) = '*', R.ACCOUNT_NO, @cAccountNo) --1.2
+            GROUP BY R.ACCOUNT_NO,
+                     CASE
+                         WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 30
+                             THEN 0 --2.6
+                     ELSE CASE
+                              WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 60
+                                  THEN 30 --2.6
+                          ELSE CASE
+                                   WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 90
+                                       THEN 60 --2.6
+                               ELSE CASE
+                                        WHEN DATEDIFF(DAY, R.DATE_RAISED, @sdSysProcDate) <= 120
+                                            THEN 90
+                                    ELSE 120 --2.6
+                                    END
+                               END
+                          END
+                     END
+        ) ac1 
+                  GROUP BY ac1.ACCOUNT_NO
+              ) source (ACCOUNT_NO, os_120_days, os_90_days, os_60_days, os_30_days, Os_Current, Os_total)
+        ON (target.Account_No = source.ACCOUNT_NO)
+        WHEN MATCHED
+            THEN UPDATE SET target.os_120_days = CONVERT(MONEY, ROUND(target.os_120_days, 2))
+                                                 - CONVERT(MONEY, ROUND(source.os_120_days, 2)),
+                            target.os_90_days = CONVERT(MONEY, ROUND(target.os_90_days, 2))
+                                                - CONVERT(MONEY, ROUND(source.os_90_days, 2)),
+                            target.os_60_days = CONVERT(MONEY, ROUND(target.os_60_days, 2))
+                                                - CONVERT(MONEY, ROUND(source.os_60_days, 2)),
+                            target.os_30_days = CONVERT(MONEY, ROUND(target.os_30_days, 2))
+                                                - CONVERT(MONEY, ROUND(source.os_30_days, 2)),
+                            target.Os_Current = CONVERT(MONEY, ROUND(target.Os_Current, 2))
+                                                - CONVERT(MONEY, ROUND(source.Os_Current, 2)),
+                            target.os_total = CONVERT(MONEY, ROUND(target.os_total, 2))
+                                              - CONVERT(MONEY, ROUND(source.Os_total, 2));
+
+
+        ------------ update
+
+
+        MERGE dbo.ATB_BALANCE_LCY_ADVANCE target
+        USING (
+                  SELECT DISTINCT
+                         Account_No,
+                         Month_ref,
+                         os_120_days,
+                         os_90_days,
+                         os_60_days,
+                         os_30_days,
+                         Os_Current,
+                         os_total,
+                         date_lupd,
+                         CURRENCY_CODE
+                  FROM #MyTempTable
+              ) source (ACCOUNT_NO, month_ref, os_120_days, os_90_days, os_60_days, os_30_days, Os_Current, Os_total, date_lupd, Currency_Code)
+        ON (
+               target.ACCOUNT_NO = source.ACCOUNT_NO AND target.MONTH_REF = source.month_ref
+           )
+        WHEN MATCHED
+            THEN UPDATE SET target.OS_120_DAYS_LCY = CONVERT(MONEY, ROUND(source.os_120_days, 2)),
+                            target.OS_90_DAYS_LCY = CONVERT(MONEY, ROUND(source.os_90_days, 2)),
+                            target.OS_60_DAYS_LCY = CONVERT(MONEY, ROUND(source.os_60_days, 2)),
+                            target.OS_30_DAYS_LCY = CONVERT(MONEY, ROUND(source.os_30_days, 2)),
+                            target.OS_CURRENT_LCY = CONVERT(MONEY, ROUND(source.Os_Current, 2)),
+                            target.OS_TOTAL_LCY = CONVERT(MONEY, ROUND(source.Os_total, 2)),
+                            target.DATE_LUPD = source.date_lupd
+        WHEN NOT MATCHED
+            THEN INSERT (
+                            ACCOUNT_NO,
+                            MONTH_REF,
+                            OS_120_DAYS_LCY,
+                            OS_90_DAYS_LCY,
+                            OS_60_DAYS_LCY,
+                            OS_30_DAYS_LCY,
+                            OS_CURRENT_LCY,
+                            OS_TOTAL_LCY,
+                            DATE_LUPD,
+                            CURRENCY_CODE
+                        )
+                 VALUES
+                 (   source.ACCOUNT_NO,
+                     source.month_ref,
+                     source.os_120_days,
+                     source.os_90_days,
+                     source.os_60_days,
+                     source.os_30_days,
+                     source.Os_Current,
+                     source.Os_total,
+                     source.date_lupd,
+                     source.Currency_Code);
+
+        EXEC dbo.Gsp_ATB_Advance_OverdueUpdateDailyLCY @cAccountNo --1.2
+
+        IF @cMonthBatch <> @cMonthRef
+            BEGIN
+
+                --- Updating Month_End_Status for monthend controls 
+                SET @vErrorMessage =
+                    'Gsp_ATB_Advance_OverdueUpdateDailyLCY : Error occured while updating Month_End_Status table for Prog_Name : Gsp_ATB_Advance_OverdueUpdateDailyLCY'
+
+                UPDATE dbo.MONTH_END_STATUS
+                SET PRC_MONTH = SUBSTRING(@cMonthBatch, 5, 2),
+                    DONE = 'Y',
+                    DATE_LUPD = GETDATE()
+                WHERE PROG_NAME = 'Gsp_ATB_Advance_OverdueUpdateDailyLCY'
+
+            END
+
+        RETURN 0
+
+    END TRY
+    BEGIN CATCH
+        SET @vErrorMessage = @vErrorMessage + ' - ' + ERROR_MESSAGE()
+        INSERT INTO dbo.ERRORMSG
+        (
+        em_date_time,
+        em_field_value,
+        em_error_code,
+        em_error_comment
+        )
+        VALUES
+        (   GETDATE(),
+            'Error -> ',
+            ERROR_NUMBER(),
+            @vErrorMessage)
+        RAISERROR(@vErrorMessage, 16, -1)
+        RETURN (1)
+    END CATCH
+
+
+
