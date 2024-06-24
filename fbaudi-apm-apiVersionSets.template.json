@@ -1,40 +1,7 @@
-Absolutely, here is a detailed analysis of the provided stored procedure line by line:
-
-**Lines 1-9: Procedure Header**
-
-* `SET ANSI_NULLS ON` - This statement enables ANSI null handling behavior for the procedure.
-* `SET QUOTED_IDENTIFIER ON` - This statement enables quoted identifiers to be used within the procedure.
-
-**Lines 11-232: Procedure Body**
-
-* **Comments and Declarations (Lines 11-48):**
-    * This section includes comments describing the purpose of the stored procedure (`Gsp_ATB_Advance_UpdateDailyLCY`), its inputs (`@cAccountNo`), and its outputs (None).
-    * Local variables are declared, including:
-        * `@sdSysProcDate`: To store the system processed date.
-        * `@cMonthBatch`: To store the current month batch.
-        * `@cMonthRef`: To store the month reference.
-        * `@vErrorMessage`: To store any error messages encountered during execution.
-        * `@cChkFlag`: Flag for checking purposes (not used in the provided code).
-        * `@iReturnValue`: To store the return value of the procedure (0 for success, 1 for error).
-        * `@cFlag`: Flag for unidentified purposes.
-        * `@bAtbByDueDate`: Flag to determine the ATB calculation method (0: standard, 1: by due date).
-        * `@sdMonthEndDate`: To store the month end date (added in version 2.6).
-* **Error Checking - Advance Receipt Enabled (Lines 49-55):**
-    * The procedure checks if advance receipt is enabled in the application settings table (`dbo.APPLICATION_SETTINGS`).
-    * If advance receipt is not enabled, the procedure exits by returning.
-* **Setting @bAtbByDueDate based on Country Settings (Lines 56-61):** (v2.2)
-    * The procedure checks if a specific country setting (`CALCULATE_ATB_BY_PRINT_DATE = 'Y'`) exists in the `dbo.COUNTRY_SETTINGS` table.
-    * If the setting exists, `@bAtbByDueDate` is set to 1, indicating ATB should be calculated by due date.
-* **Creating Temporary Table (#MyTempTable) (Lines 63-70):**
-    * A temporary table named `#MyTempTable` is created with columns to store account number, month reference, outstanding balances for different aging buckets (120 days, 90 days, 60 days, 30 days, current), total outstanding balance, date updated, and currency code.
-* **Error Handling - Getting System Settings (Lines 72-87):**
-    * The procedure attempts to retrieve system settings (`SYS_PROC_DATE`, `MONTH_BATCH`, `MONTH_REF`, and `MONTH_END_DATE` - added in version 2.6) from the `dbo.SYSTEM_SETTINGS` table using the key `'S1'`.
-    * An error message is set if no records are found in the system settings table.
-    * If the system processed date (`@sdSysProcDate`) is greater than the month end date (`@sdMonthEndDate`), the system processed date is set to the month end date (added in version 2.6).
-* **Populating Temporary Table with Initial Data (Lines 89-94):**
-    * The temporary table (`#MyTempTable`) is populated with initial data for each account number in the `dbo.ATB_BALANCE` table, including the month reference, currency code, and a date updated set to the current date.
-* **Updating Temporary Table with Outstanding Balances (Lines 96-181):**
-    * A merge statement is used to update the temporary table with calculated outstanding balances for each account.
-    * The `SOURCE` table is derived from a subquery that joins the `dbo.RECEIPT` table with the `dbo.ACCOUNT` and `dbo.COMPANY` tables.
-    * The subquery filters for receipts that are matched (`MATCHED = 'Y'`), have a balance greater than zero (`BALANCE_UNPAID > 0`), are advance payments (`IS_ADVANCE_PAYMENT = 1`), and the company requires ATB for advance payments (`ISNULL(C.ADVANCE_ATB_REQ, 0) = 1`). The filter for account number is applied based on the `@cAccountNo` parameter (added in version 1.2).
-    * The subquery calculates the outstanding balance for different aging buckets based on the difference between the raised date of the receipt and the system processed date (`@sdSysProcDate`). The logic considers the
+ - task: DotNetCoreCLI@2
+            displayName: 'Test and Collect Code Coverage'
+            inputs:
+              command: 'test'
+              projects: '**/fbau-d365-dealer-integration/FBAU.D365.DealerIntegration.API/FBAU.D365.DealerIntegration.Tests/FBAU.D365.DealerIntegration.Tests.csproj'
+              arguments: '--configuration $(buildConfiguration) --collect "Code coverage" --settings $(Build.SourcesDirectory)/fbau-d365-dealer-integration/FBAU.D365.DealerIntegration.API/codecoverage.runsettings'         
+              publishTestResults: true
