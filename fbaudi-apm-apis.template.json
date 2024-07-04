@@ -1,6 +1,6 @@
 - task: DotNetCoreCLI@2
-  displayName: 'Run tests with code coverage'
+  displayName: 'Run tests with code coverage for a specific category'
   inputs:
     command: 'test'
     projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+    arguments: '--configuration $(buildConfiguration) --filter TestCategory=YourCategoryName /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
