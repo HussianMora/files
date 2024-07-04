@@ -1,6 +1,6 @@
-- task: VSTest@2
+- task: DotNetCoreCLI@2
+  displayName: 'Run tests with code coverage'
   inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: '**\*test*.dll'
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    testFiltercriteria: 'TestCategory=YourCategoryName'
+    command: 'test'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
