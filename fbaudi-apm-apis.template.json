@@ -1,12 +1,6 @@
-1	Sets up the initial variables required by the SP for managing overdue account balances on a daily basis.
-2	Verifies if local receipt processing is enabled. Then, it optionally creates a temporary table to hold account numbers.
-3	Creates a temporary table to hold pre-processed outstanding invoice balance information.
-4	Retrieves specific system settings relevant to the stored procedure.
-5	Checks if the last select statement retrieved any data from the system settings table. If no rows were found it raises an error message.
-6	Validates a date, then populates a temporary table with pre-selected ATB balance data from ATB balance local table based on a month reference.
-7	Merge the temprory table with outstanding invoice balances for different aging buckets based on invoice data and the system date whenever a matching account number is found in the source data.
-8	Subtracts the outstanding invoice balance values from the credit notes (source) from the existing values in the target table.
-9	Retrive data from journal head and journal line. Adds the outstanding invoice balance values from the debit transactions to the existing values in the target table.
-10	Subtract the outstanding invoice balance values from the credit transactions  from the existing values in the target table.
-11	Retrieves data from the reeiptT table to calculate outstanding invoice balances for various aging buckets. Subtracts the outstanding invoice balance values from the receipt  from the existing values in the target table.
-12	Updates or inserts overdue invoice data into the ATB overdue local table based on the pre-calculated values in the temporary table on condition account no. and month ref.
+- task: VSTest@2
+  inputs:
+    testSelector: 'testAssemblies'
+    testAssemblyVer2: '**\*test*.dll'
+    searchFolder: '$(System.DefaultWorkingDirectory)'
+    testFiltercriteria: 'TestCategory=YourCategoryName'
